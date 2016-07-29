@@ -26,6 +26,10 @@ public class Bank {
 		getUsers().put(user.getLogin(), user);
 	}
 
+	public void removeUser(User user) {
+		getUsers().remove(user.getLogin());
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;

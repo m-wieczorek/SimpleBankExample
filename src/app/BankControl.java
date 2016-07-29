@@ -10,8 +10,8 @@ import entities.User;
 import utils.CSVReaderWriter;
 
 public class BankControl {
-	private static final int LOGIN = 0;
-	private static final int EXIT = 1;
+	private static final int LOGIN = 1;
+	private static final int EXIT = 0;
 
 	private Bank bank;
 	private CSVReaderWriter databaseManager;
@@ -71,15 +71,33 @@ public class BankControl {
 		System.out.println(stringBuilder.toString());
 	}
 
+	private User checkLoginAndPassword(Scanner scanner) {
+		User user = null;
+		while (true) {
+			System.out.println("Podaj login: ");
+			String login = scanner.nextLine();
+			System.out.println("Podaj haslo: ");
+			String password = scanner.nextLine();
+			if (bank.getUsers().get(login) != null) {
+				user = bank.getUsers().get(login);
+				if (password.equals(user.getPassword())) {
+					return user;
+				}
+			}
+		}
+	}
+
 	private void printAdminAccount(User user, Scanner scanner) throws IOException {
-		final int ADD_USER = 0;
+		final int ADD_USER = 1;
+		final int REMOVE_USER = 2;
 		int option = -1;
 
 		StringBuilder stringBuilder = new StringBuilder();
 		stringBuilder.append("KONTO ADMINISTRATORA\n");
 		stringBuilder.append("Witaj " + user.getLogin() + "!\n\n");
 		stringBuilder.append(ADD_USER + " - dodaj uzytkownika\n");
-		stringBuilder.append(EXIT + " - wyloguj");
+		stringBuilder.append(REMOVE_USER + " - usun uzytkownika\n");
+		stringBuilder.append("\n" + EXIT + " - wyloguj");
 
 		while (option != EXIT) {
 			System.out.println(stringBuilder.toString());
@@ -88,8 +106,12 @@ public class BankControl {
 			scanner.nextLine();
 
 			switch (option) {
-			case LOGIN:
+			case ADD_USER:
 				addUser(scanner);
+				save();
+				break;
+			case REMOVE_USER:
+				removeUser(scanner, user);
 				save();
 				break;
 			case EXIT:
@@ -123,17 +145,48 @@ public class BankControl {
 		}
 	}
 
-	private void printClientAccount(User user, Scanner scanner) throws IOException {
-		final int TRANSFER = 0;
-		int option = -1;
+	private void removeUser(Scanner scanner, User loggedUser) throws IOException {
+		System.out.println("Podaj login uzytkownika do usuniecia: ");
+		String login = scanner.nextLine();
+		if (bank.getUsers().get(login) != null) {
+			if (login.equals(loggedUser.getLogin())) {
+				int adminsNumber = 0;
+				for (User u : bank.getUsers().values()) {
+					if (u.getUserType().equals("ADMIN")) {
+						adminsNumber++;
+					}
+				}
+				if (adminsNumber == 1) {
+					System.out.println("Nie mozesz usunac ostatniego konta z uprawnieniami administratora!");
+				} else {
+					System.out.println("UWAGA! CZY NA PEWNO CHCESZ USUNAC WLASNE KONTO? (TAK/NIE)\n"
+							+ "SPOWODUJE TO NATYCHMIASTOWE ZAMKNIECIE PROGRAMU!\n");
+					if (scanner.nextLine().equals("TAK")) {
+						bank.removeUser(bank.getUsers().get(login));
+						save();
+						System.exit(0);
+					}
+				}
 
+			} else {
+				bank.removeUser(bank.getUsers().get(login));
+				System.out.println("Usunieto uzytkownika " + login);
+			}
+		} else {
+			System.out.println("Nie znaleziono loginu w bazie!");
+		}
+	}
+
+	private void printClientAccount(User user, Scanner scanner) throws IOException {
+		final int TRANSFER = 1;
+		int option = -1;
 
 		while (option != EXIT) {
 			StringBuilder stringBuilder = new StringBuilder();
 			stringBuilder.append("Witaj " + user.getLogin() + "!\n");
 			stringBuilder.append("Twoj stan konta: " + user.getAccountBalance() + " PLN\n\n");
 			stringBuilder.append(TRANSFER + " - wykonaj przelew\n");
-			stringBuilder.append(EXIT + " - wyloguj");
+			stringBuilder.append("\n" + EXIT + " - wyloguj");
 
 			System.out.println(stringBuilder.toString());
 
@@ -173,28 +226,13 @@ public class BankControl {
 						sender.setAccountBalance(sender.getAccountBalance().subtract(transfer));
 						bank.getUsers().put(receiverLogin, receiver);
 						bank.getUsers().put(sender.getLogin(), sender);
-						System.out.println("Przelano " + transfer.toString() + "PLN uzytkownikowi " + receiverLogin +"\n");
+						System.out.println(
+								"Przelano " + transfer.toString() + "PLN uzytkownikowi " + receiverLogin + "\n");
 					} else {
 						System.out.println("Nie mozesz przelewac pieniedzy adminowi! :P");
 					}
 				} else {
 					System.out.println("Podany uzytkownik nie istnieje!");
-				}
-			}
-		}
-	}
-
-	private User checkLoginAndPassword(Scanner scanner) {
-		User user = null;
-		while (true) {
-			System.out.println("Podaj login: ");
-			String login = scanner.nextLine();
-			System.out.println("Podaj haslo: ");
-			String password = scanner.nextLine();
-			if (bank.getUsers().get(login) != null) {
-				user = bank.getUsers().get(login);
-				if (password.equals(user.getPassword())) {
-					return user;
 				}
 			}
 		}
