@@ -222,12 +222,15 @@ public class BankControl {
 				if ((bank.getUsers().get(receiverLogin)) != null) {
 					User receiver = bank.getUsers().get(receiverLogin);
 					if (receiver.getUserType().equals("CLIENT")) {
-						receiver.setAccountBalance(receiver.getAccountBalance().add(transfer));
-						sender.setAccountBalance(sender.getAccountBalance().subtract(transfer));
-						bank.getUsers().put(receiverLogin, receiver);
-						bank.getUsers().put(sender.getLogin(), sender);
-						System.out.println(
-								"Przelano " + transfer.toString() + "PLN uzytkownikowi " + receiverLogin + "\n");
+						if (receiver.getLogin().equals(sender.getLogin())) {
+						} else {
+							receiver.setAccountBalance(receiver.getAccountBalance().add(transfer));
+							sender.setAccountBalance(sender.getAccountBalance().subtract(transfer));
+							bank.getUsers().put(receiverLogin, receiver);
+							bank.getUsers().put(sender.getLogin(), sender);
+							System.out.println(
+									"Przelano " + transfer.toString() + " PLN uzytkownikowi " + receiverLogin + "\n");
+						}
 					} else {
 						System.out.println("Nie mozesz przelewac pieniedzy adminowi! :P");
 					}
