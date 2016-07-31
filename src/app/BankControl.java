@@ -223,6 +223,7 @@ public class BankControl {
 					User receiver = bank.getUsers().get(receiverLogin);
 					if (receiver.getUserType().equals("CLIENT")) {
 						if (receiver.getLogin().equals(sender.getLogin())) {
+							System.out.println("Nie mozesz zlecic transferu do samego siebie!");
 						} else {
 							receiver.setAccountBalance(receiver.getAccountBalance().add(transfer));
 							sender.setAccountBalance(sender.getAccountBalance().subtract(transfer));
